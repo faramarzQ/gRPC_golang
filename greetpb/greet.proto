@@ -18,17 +18,30 @@ message GreetResponse {
 }
 
 message GreetManyTimesRequest {
-    Greeting greeing = 1;
+    Greeting greeting = 1;
 }
 
 message GreetManyTimesResponse {
     string result = 1;
 }
 
+message LongGreetRequest {
+    Greeting greeting = 1;
+}
+
+message LongGreetResponse {
+    string result = 1;
+}
+
+// Protoc creates a client and server from this service
 service GreetService {
+
     // Unary
     rpc Greet(GreetRequest) returns (GreetResponse) {};
 
     // Server Streaming
     rpc GreetManyTimes(GreetManyTimesRequest) returns (stream GreetManyTimesResponse) {};
+
+    // Client streaming
+    rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse) {};
 }

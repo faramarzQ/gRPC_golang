@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/faramarzq/grpc_go_course/greet/greetpb"
 	"google.golang.org/grpc"
@@ -22,7 +23,56 @@ func main() {
 
 	// doUnaryRPC(c)
 
-	doServerStreaming(c)
+	// doServerStreaming(c)
+
+	doClientStreaming(c)
+}
+
+func doClientStreaming(c greetpb.GreetServiceClient) {
+	reqs := []*greetpb.LongGreetRequest{
+		&greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "One",
+			},
+		},
+		&greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Two",
+			},
+		},
+		&greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Three",
+			},
+		},
+		&greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Four",
+			},
+		},
+		&greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Five",
+			},
+		},
+	}
+
+	stream, err := c.LongGreet(context.Background())
+	if err != nil {
+		log.Fatalf("error while calling long greet: %v", err)
+	}
+
+	for _, req := range reqs {
+		fmt.Printf("Sending Req: %v\n", req)
+		stream.Send(req)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("error while receiving response from LongGreet: %v", err)
+	}
+	fmt.Printf("LongGreet response: %v\n", res)
 }
 
 func doUnaryRPC(c greetpb.GreetServiceClient) {
@@ -36,7 +86,7 @@ func doUnaryRPC(c greetpb.GreetServiceClient) {
 
 	res, err := c.Greet(context.Background(), req)
 	if err != nil {
-		log.Fatalf("error while calling greeing: %v", err)
+		log.Fatalf("error while calling greeting: %v", err)
 	}
 
 	log.Printf("Response: %v", res.Result)
@@ -45,17 +95,19 @@ func doUnaryRPC(c greetpb.GreetServiceClient) {
 func doServerStreaming(c greetpb.GreetServiceClient) {
 
 	req := &greetpb.GreetManyTimesRequest{
-		Greeing: &greetpb.Greeting{
+		Greeting: &greetpb.Greeting{
 			FirstName: "Faramarz",
 			LastName:  "Qoshchi",
 		},
 	}
 
+	// Send greeting
 	resStream, err := c.GreetManyTimes(context.Background(), req)
 	if err != nil {
-		log.Fatalf("error while calling greeing: %v", err)
+		log.Fatalf("error while calling greeting: %v", err)
 	}
 
+	// Receive greeting stream
 	for {
 		msg, err := resStream.Recv()
 		if err == io.EOF {
