@@ -33,6 +33,14 @@ message LongGreetResponse {
     string result = 1;
 }
 
+message GreetEveryoneRequest {
+    Greeting greeting = 1;
+}
+
+message GreetEveryoneResponse {
+    string response = 1;
+}
+
 // Protoc creates a client and server from this service
 service GreetService {
 
@@ -44,4 +52,7 @@ service GreetService {
 
     // Client streaming
     rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse) {};
+
+    // Bidirectional streaming
+    rpc GreetEveryone(stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse) {};
 }
