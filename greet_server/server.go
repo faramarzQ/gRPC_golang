@@ -11,6 +11,8 @@ import (
 
 	"github.com/faramarzq/grpc_go_course/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
@@ -20,6 +22,14 @@ type server struct {
 func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
 	fmt.Printf("Greet function invoked %v", req)
 	firstName := req.GetGreeting().GetFirstName()
+
+	if firstName == "" {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			fmt.Sprintf("Received an invalid argument: %v\n", firstName),
+		)
+	}
+
 	result := "Hello " + firstName
 	res := &greetpb.GreetResponse{
 		Result: result,

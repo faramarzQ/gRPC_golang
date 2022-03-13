@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"time"
 
 	"github.com/faramarzq/grpc_go_course/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -21,30 +24,47 @@ func main() {
 
 	c := greetpb.NewGreetServiceClient(conn)
 
-	// doUnaryRPC(c)
+	doUnaryRPC(c)
 
 	// doServerStreaming(c)
 
 	// doClientStreaming(c)
 
-	doBidirectionalStreaming(c)
+	// doBidirectionalStreaming(c)
 }
 
 func doUnaryRPC(c greetpb.GreetServiceClient) {
 
+	var firstName string
+	if len(os.Args) >= 2 {
+		firstName = os.Args[1]
+	} else {
+		firstName = ""
+	}
 	req := &greetpb.GreetRequest{
 		Greeting: &greetpb.Greeting{
-			FirstName: "faramarz",
+			FirstName: firstName,
 			LastName:  "qoshchi",
 		},
 	}
 
 	res, err := c.Greet(context.Background(), req)
 	if err != nil {
-		log.Fatalf("error while calling greeting: %v", err)
+		resErr, ok := status.FromError(err)
+		if ok {
+			fmt.Printf(resErr.Message())
+			fmt.Println(resErr.Code())
+			if resErr.Code() == codes.InvalidArgument {
+				fmt.Println("You've sent no arguments, pass the name as the second arg in cmd.")
+				return
+			}
+		} else {
+			log.Fatalf("error while calling greeting: %v", err)
+			return
+		}
 	}
 
-	log.Printf("Response: %v", res.Result)
+	log.Printf("Response: %v\n", res.Result)
 }
 
 func doServerStreaming(c greetpb.GreetServiceClient) {
