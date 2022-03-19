@@ -24,13 +24,15 @@ func main() {
 
 	c := greetpb.NewGreetServiceClient(conn)
 
-	doUnaryRPC(c)
+	// doUnaryRPC(c)
 
 	// doServerStreaming(c)
 
 	// doClientStreaming(c)
 
 	// doBidirectionalStreaming(c)
+
+	doUnaryWithDeadline(c, 1*time.Second)
 }
 
 func doUnaryRPC(c greetpb.GreetServiceClient) {
@@ -50,7 +52,7 @@ func doUnaryRPC(c greetpb.GreetServiceClient) {
 
 	res, err := c.Greet(context.Background(), req)
 	if err != nil {
-		resErr, ok := status.FromError(err)
+		resErr, ok := status.FromError(err) // ok == true means the error is from gRPC package
 		if ok {
 			fmt.Printf(resErr.Message())
 			fmt.Println(resErr.Code())
@@ -204,4 +206,31 @@ func doBidirectionalStreaming(c greetpb.GreetServiceClient) {
 	}()
 
 	<-wait
+}
+
+func doUnaryWithDeadline(c greetpb.GreetServiceClient, duration time.Duration) {
+	req := &greetpb.GreetWithDeadlineRequest{
+		Greeting: &greetpb.Greeting{
+			FirstName: "Faramarz",
+			LastName:  "qoshchi",
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
+	defer cancel()
+
+	res, err := c.GreetWithDeadline(ctx, req)
+	if err != nil {
+		resErr, ok := status.FromError(err)
+		if ok {
+			if resErr.Code() == codes.DeadlineExceeded {
+				fmt.Println("Deadline timeout exceeded!")
+			}
+		} else {
+			log.Fatalf("error while calling greeting: %v", err)
+		}
+		return
+	}
+
+	log.Printf("Response: %v\n", res.Response)
 }

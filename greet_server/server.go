@@ -19,6 +19,7 @@ type server struct {
 	greetpb.GreetServiceServer
 }
 
+// Test
 func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
 	fmt.Printf("Greet function invoked %v", req)
 	firstName := req.GetGreeting().GetFirstName()
@@ -102,6 +103,27 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 			return err
 		}
 	}
+}
+
+func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
+	fmt.Printf("Greet with deadline function invoked %v\n", req)
+	firstName := req.GetGreeting().GetFirstName()
+
+	for i := 0; i <= 3; i++ {
+		fmt.Println(ctx.Err())
+		if ctx.Err() == context.Canceled {
+			fmt.Println("The client cancelled the request!")
+			return nil, status.Error(codes.Canceled, "The client cancelled the request!")
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	result := "Hello " + firstName
+	res := &greetpb.GreetWithDeadlineResponse{
+		Response: result,
+	}
+
+	return res, nil
 }
 
 func main() {

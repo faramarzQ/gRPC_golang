@@ -41,6 +41,14 @@ message GreetEveryoneResponse {
     string response = 1;
 }
 
+message GreetWithDeadlineRequest {
+    Greeting greeting = 1;
+}
+
+message GreetWithDeadlineResponse {
+    string response = 1;
+}
+
 // Protoc creates a client and server from this service
 service GreetService {
 
@@ -55,4 +63,7 @@ service GreetService {
 
     // Bidirectional streaming
     rpc GreetEveryone(stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse) {};
+
+    // Unary with deadline
+    rpc GreetWithDeadline(GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse) {};
 }
